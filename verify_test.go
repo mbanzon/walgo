@@ -6,12 +6,9 @@ import (
 
 func TestSomeStuff(t *testing.T) {
 	s := struct {
-		Foo string `bingo:"yeah,baby" json:"foobar,required"`
-	}{
-		"oh boy",
-	}
+		Foo string `walgo:"skip"`
+	}{}
 
-	RequireBody(nil, nil, s, func() {
-		t.Log("good!")
-	})
+	ok, err := verifyData([]byte(`{"Foo":"bar"}`), &s)
+	t.Log(ok, err, s)
 }
