@@ -156,7 +156,7 @@ func TestDelete(t *testing.T) {
 }
 
 func TestInvalidUrl(t *testing.T) {
-	_, err := Get("inv:a:lid://url", nil)
+	_, err := Get("", nil)
 	if err == nil {
 		t.Fatal("Invalid URL should return an error.")
 	}
