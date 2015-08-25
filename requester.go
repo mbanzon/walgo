@@ -64,6 +64,10 @@ func (f *requesterImpl) makeRequest(url string, p ParameterMap, method string, l
 		return nil, err
 	}
 
+	if l != nil {
+		req.Header.Add("Content-Type", l.getContentType())
+	}
+
 	req.Header.Add("User-Agent", f.userAgent)
 	if "" != f.authToken {
 		req.Header.Add("Authorizastion", "Bearer "+f.authToken)
