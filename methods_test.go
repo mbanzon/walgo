@@ -21,6 +21,10 @@ func TestGet(t *testing.T) {
 		t.Fatal("No data in response.")
 	}
 
+	if res.Duration() <= 0 {
+		t.Fatal("No time elapsed during the request.")
+	}
+
 	var tmp map[string]interface{}
 	err = res.JSON(&tmp)
 	if err != nil {
@@ -125,6 +129,31 @@ func TestPost(t *testing.T) {
 	}
 }
 
+func TestPostWithData(t *testing.T) {
+	m := MultipartPayload{}
+	m.Add("key1", "value1")
+	m.Add("key2", "value2")
+
+	p, err := PayloadFromMultipart(m)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	res, err := Post("http://httpbin.org/post", nil, p)
+	if err != nil || res.Error() != nil {
+		t.Fatal(err)
+	}
+
+	if res.Code() != http.StatusOK {
+		t.Fatalf("Response code should be %d. Got: %d", http.StatusOK, res.Code())
+	}
+
+	if res.Data() == nil || res.String() == "" {
+		t.Fatal("No data in response.")
+	}
+
+}
+
 func TestPut(t *testing.T) {
 	res, err := Put("http://httpbin.org/put", nil, nil)
 	if err != nil || res.Error() != nil {
@@ -159,5 +188,18 @@ func TestInvalidUrl(t *testing.T) {
 	_, err := Get("", nil)
 	if err == nil {
 		t.Fatal("Invalid URL should return an error.")
+	}
+}
+
+func TestCustomRequester(t *testing.T) {
+	r := NewRequester(http.DefaultClient, "Walgo Test", "test123")
+	res, err := r.Get("http://httpbin.org/get", nil)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if res.Code() != 200 {
+		t.Fatal("Unexpected response code:", res.Code())
 	}
 }
