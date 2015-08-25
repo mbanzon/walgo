@@ -46,6 +46,18 @@ func TestMultipartData(t *testing.T) {
 	doMakeTheRequest(t, p)
 }
 
+func TestMultipartDublets(t *testing.T) {
+	m := MultipartPayload{}
+	err := m.Add("name", "value")
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = m.Add("name", "value")
+	if err == nil {
+		t.Fatal("Dublets should fail!")
+	}
+}
+
 func doMakeTheRequest(t *testing.T, p Payload) {
 	res, err := Post("http://httpbin.org/post", nil, p)
 	if err != nil || res.Error() != nil {
