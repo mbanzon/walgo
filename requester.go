@@ -70,7 +70,7 @@ func (f *requesterImpl) makeRequest(url string, p ParameterMap, method string, l
 
 	req.Header.Add("User-Agent", f.userAgent)
 	if "" != f.authToken {
-		req.Header.Add("Authorizastion", "Bearer "+f.authToken)
+		req.Header.Add("Authorization", "Bearer "+f.authToken)
 	}
 
 	resp, err := f.client.Do(req)
