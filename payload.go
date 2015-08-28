@@ -62,12 +62,8 @@ func PayloadFromMultipart(m MultipartPayload) (p Payload, err error) {
 	defer writer.Close()
 
 	for k, v := range m.values {
-		if field, err := writer.CreateFormField(k); err == nil {
-			_, err := field.Write([]byte(v))
-			if err != nil {
-				return nil, err
-			}
-		} else {
+		err := writer.WriteField(k, v)
+		if err != nil {
 			return nil, err
 		}
 	}
