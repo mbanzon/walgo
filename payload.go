@@ -71,14 +71,20 @@ func PayloadFromMultipart(m MultipartPayload) (p Payload, err error) {
 	for k, v := range m.files {
 		if file, err := writer.CreateFormFile(k, v.Name); err == nil {
 			defer v.File.Close()
-			io.Copy(file, v.File)
+			_, err := io.Copy(file, v.File)
+			if err != nil {
+				return nil, err
+			}
 		} else {
 			return nil, err
 		}
 	}
 
+	contentType := writer.FormDataContentType()
+	writer.Close()
+
 	return &payloadImpl{
-		contentType: writer.FormDataContentType(),
+		contentType: contentType,
 		data:        buffer.Bytes(),
 	}, nil
 }
