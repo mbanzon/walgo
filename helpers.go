@@ -5,8 +5,8 @@ import (
 	"net/http"
 )
 
-func CheckOutputJsonErr(w http.ResponseWriter, v interface{}, err error, code int) {
-	CheckErr(w, err, code, func() {
+func CheckErrOutputJson(err error, w http.ResponseWriter, v interface{}) {
+	CheckErr(w, err, http.StatusInternalServerError, func() {
 		w.Header().Add("Content-Type", "application/json")
 		if e := json.NewEncoder(w).Encode(v); e != nil {
 			http.Error(w, "Internal error.", http.StatusInternalServerError)

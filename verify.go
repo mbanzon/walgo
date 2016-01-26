@@ -18,7 +18,7 @@ const (
 func VerifyBody(w http.ResponseWriter, r *http.Request, v interface{}, next func()) {
 	data, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		http.Error(w, "", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
