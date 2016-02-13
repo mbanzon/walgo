@@ -1,6 +1,7 @@
 package walgo
 
 import (
+	"database/sql"
 	"encoding/json"
 	"net/http"
 )
@@ -16,7 +17,11 @@ func CheckErrOutputJson(err error, w http.ResponseWriter, v interface{}) {
 
 func CheckErr(w http.ResponseWriter, err error, code int, next func()) {
 	if err != nil {
-		http.Error(w, "", code)
+		if err == sql.ErrNoRows {
+			http.Error(w, "", http.StatusNotFound)
+		} else {
+			http.Error(w, "", code)
+		}
 	} else {
 		next()
 	}
