@@ -19,7 +19,9 @@ func init() {
 type Requester interface {
 	Get(url string, p ParameterMap) (res Response, err error)
 	Post(url string, p ParameterMap, l Payload) (r Response, err error)
+	PostJson(url string, p ParameterMap, v interface{}) (r Response, err error)
 	Put(url string, p ParameterMap, l Payload) (r Response, err error)
+	PutJson(url string, p ParameterMap, v interface{}) (r Response, err error)
 	Delete(url string, p ParameterMap) (r Response, err error)
 
 	makeRequest(url string, p ParameterMap, method string, l Payload) (r Response, err error)

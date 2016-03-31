@@ -8,8 +8,16 @@ func Post(url string, p ParameterMap, l Payload) (r Response, err error) {
 	return defaultRequester.Post(url, p, l)
 }
 
+func PostJson(url string, p ParameterMap, v interface{}) (r Response, err error) {
+	return defaultRequester.PostJson(url, p, v)
+}
+
 func Put(url string, p ParameterMap, l Payload) (r Response, err error) {
 	return defaultRequester.Put(url, p, l)
+}
+
+func PutJson(url string, p ParameterMap, v interface{}) (r Response, err error) {
+	return defaultRequester.PutJson(url, p, v)
 }
 
 func Delete(url string, p ParameterMap) (r Response, err error) {
@@ -24,8 +32,26 @@ func (f *requesterImpl) Post(url string, p ParameterMap, l Payload) (r Response,
 	return f.makeRequest(url, p, "POST", l)
 }
 
+func (f *requesterImpl) PostJson(url string, p ParameterMap, v interface{}) (r Response, err error) {
+	payload, err := CreateJsonPayload(v)
+	if err != nil {
+		return nil, err
+	}
+
+	return f.Post(url, p, payload)
+}
+
 func (f *requesterImpl) Put(url string, p ParameterMap, l Payload) (r Response, err error) {
 	return f.makeRequest(url, p, "PUT", l)
+}
+
+func (f *requesterImpl) PutJson(url string, p ParameterMap, v interface{}) (r Response, err error) {
+	payload, err := CreateJsonPayload(v)
+	if err != nil {
+		return nil, err
+	}
+
+	return f.Put(url, p, payload)
 }
 
 func (f *requesterImpl) Delete(url string, p ParameterMap) (r Response, err error) {
