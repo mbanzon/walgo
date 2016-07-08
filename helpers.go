@@ -8,10 +8,13 @@ import (
 )
 
 const (
-	ContentTypeHeader = "Content-Type"
-	JsonContentType   = "application/json"
+	ContentTypeHeader = "Content-Type"     // Header for specifying content type
+	JsonContentType   = "application/json" // Content type for JSON payloads
 )
 
+// Checks the provided error. If it is nil the provided v is encoded as
+// JSON and written to the given response writer. If it is not nil
+// the status code 500 (Internal server error) is instead sent.
 func CheckErrOutputJson(err error, w http.ResponseWriter, v interface{}) {
 	CheckErr(w, err, http.StatusInternalServerError, func() {
 		w.Header().Add(ContentTypeHeader, JsonContentType)
