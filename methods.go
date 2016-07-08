@@ -2,7 +2,18 @@ package walgo
 
 import (
 	"net/http"
+	"strconv"
 )
+
+type ParameterMap map[string]string
+
+func (p ParameterMap) AddString(key, value string) {
+	p[key] = value
+}
+
+func (p ParameterMap) AddInt(key string, value int) {
+	p[key] = strconv.Itoa(value)
+}
 
 func Get(url string, p ParameterMap) (res Response, err error) {
 	return defaultRequester.Get(url, p)
