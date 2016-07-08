@@ -1,5 +1,9 @@
 package walgo
 
+import (
+	"net/http"
+)
+
 func Get(url string, p ParameterMap) (res Response, err error) {
 	return defaultRequester.Get(url, p)
 }
@@ -25,11 +29,11 @@ func Delete(url string, p ParameterMap) (r Response, err error) {
 }
 
 func (f *requesterImpl) Get(url string, p ParameterMap) (res Response, err error) {
-	return f.makeRequest(url, p, "GET", nil)
+	return f.makeRequest(url, p, http.MethodGet, nil)
 }
 
 func (f *requesterImpl) Post(url string, p ParameterMap, l Payload) (r Response, err error) {
-	return f.makeRequest(url, p, "POST", l)
+	return f.makeRequest(url, p, http.MethodPost, l)
 }
 
 func (f *requesterImpl) PostJson(url string, p ParameterMap, v interface{}) (r Response, err error) {
@@ -42,7 +46,7 @@ func (f *requesterImpl) PostJson(url string, p ParameterMap, v interface{}) (r R
 }
 
 func (f *requesterImpl) Put(url string, p ParameterMap, l Payload) (r Response, err error) {
-	return f.makeRequest(url, p, "PUT", l)
+	return f.makeRequest(url, p, http.MethodPut, l)
 }
 
 func (f *requesterImpl) PutJson(url string, p ParameterMap, v interface{}) (r Response, err error) {
@@ -55,5 +59,5 @@ func (f *requesterImpl) PutJson(url string, p ParameterMap, v interface{}) (r Re
 }
 
 func (f *requesterImpl) Delete(url string, p ParameterMap) (r Response, err error) {
-	return f.makeRequest(url, p, "DELETE", nil)
+	return f.makeRequest(url, p, http.MethodDelete, nil)
 }

@@ -12,8 +12,15 @@ var (
 	defaultRequester Requester
 )
 
+const (
+	UserAgentHeader     = "User-Agent"
+	AuthorizationHeader = "Authorization"
+	BearerPrefix        = "Bearer "
+	DefaultClientName   = "walgo"
+)
+
 func init() {
-	defaultRequester = NewRequester(http.DefaultClient, "walgo", "")
+	defaultRequester = NewRequester(http.DefaultClient, DefaultClientName, "")
 }
 
 type Requester interface {
@@ -67,12 +74,12 @@ func (f *requesterImpl) makeRequest(url string, p ParameterMap, method string, l
 	}
 
 	if l != nil {
-		req.Header.Add("Content-Type", l.getContentType())
+		req.Header.Add(ContentTypeHeader, l.getContentType())
 	}
 
-	req.Header.Add("User-Agent", f.userAgent)
+	req.Header.Add(UserAgentHeader, f.userAgent)
 	if "" != f.authToken {
-		req.Header.Add("Authorization", "Bearer "+f.authToken)
+		req.Header.Add(AuthorizationHeader, BearerPrefix+f.authToken)
 	}
 
 	resp, err := f.client.Do(req)

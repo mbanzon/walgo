@@ -7,9 +7,14 @@ import (
 	"net/http"
 )
 
+const (
+	ContentTypeHeader = "Content-Type"
+	JsonContentType   = "application/json"
+)
+
 func CheckErrOutputJson(err error, w http.ResponseWriter, v interface{}) {
 	CheckErr(w, err, http.StatusInternalServerError, func() {
-		w.Header().Add("Content-Type", "application/json")
+		w.Header().Add(ContentTypeHeader, JsonContentType)
 		if e := json.NewEncoder(w).Encode(v); e != nil {
 			log.Println(e)
 			http.Error(w, "Internal error.", http.StatusInternalServerError)

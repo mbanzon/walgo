@@ -10,6 +10,11 @@ import (
 	"sync"
 )
 
+const (
+	FormUrlEncodedContentType = "application/x-www-form-urlencoded"
+	OctetStreamContentType    = "application/octet-stream"
+)
+
 type Payload interface {
 	getContentType() (t string)
 	getData() (d []byte)
@@ -42,7 +47,7 @@ func (p *payloadImpl) getData() (d []byte) {
 
 func PayloadFromValues(v url.Values) (p Payload) {
 	return &payloadImpl{
-		contentType: "application/x-www-form-urlencoded",
+		contentType: FormUrlEncodedContentType,
 		data:        []byte(v.Encode()),
 	}
 }
@@ -57,7 +62,7 @@ func CreateJsonPayload(v interface{}) (p Payload, err error) {
 }
 
 func PayloadFromRawData(d []byte) (p Payload) {
-	return &payloadImpl{data: d, contentType: "application/octet-stream"}
+	return &payloadImpl{data: d, contentType: OctetStreamContentType}
 }
 
 func PayloadFromMultipart(m *MultipartPayload) (p Payload, err error) {
