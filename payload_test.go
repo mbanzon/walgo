@@ -34,7 +34,7 @@ func TestJsonData(t *testing.T) {
 }
 
 func TestMultipartData(t *testing.T) {
-	m := MultipartPayload{}
+	m := &MultipartPayload{}
 	m.Add("key1", "value1")
 	m.Add("key2", "value2")
 

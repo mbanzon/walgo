@@ -56,7 +56,7 @@ func verifyData(data []byte, v interface{}) (ok bool, err error) {
 		return true, nil
 	}
 
-	return false, fmt.Errorf("Value is not a struct: ", reflect.TypeOf(v).Kind().String())
+	return false, fmt.Errorf("Value is not a struct: %s", reflect.TypeOf(v).Kind().String())
 }
 
 func fieldNamePresent(f reflect.StructField, t map[string]interface{}) bool {

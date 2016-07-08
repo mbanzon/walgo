@@ -56,7 +56,7 @@ func CreateJsonPayload(v interface{}) (p Payload, err error) {
 	}
 }
 
-func PayloadFromMultipart(m MultipartPayload) (p Payload, err error) {
+func PayloadFromMultipart(m *MultipartPayload) (p Payload, err error) {
 	buffer := &bytes.Buffer{}
 	writer := multipart.NewWriter(buffer)
 	defer writer.Close()
@@ -71,8 +71,8 @@ func PayloadFromMultipart(m MultipartPayload) (p Payload, err error) {
 	for k, v := range m.files {
 		if file, err := writer.CreateFormFile(k, v.Name); err == nil {
 			defer v.File.Close()
-			_, err := io.Copy(file, v.File)
-			if err != nil {
+			_, err2 := io.Copy(file, v.File)
+			if err2 != nil {
 				return nil, err
 			}
 		} else {

@@ -55,8 +55,8 @@ func (f *requesterImpl) makeRequest(url string, p ParameterMap, method string, l
 
 	if l != nil {
 		data := l.getData()
-		c, err := buffer.Write(data)
-		if c != len(data) || err != nil {
+		c, err2 := buffer.Write(data)
+		if c != len(data) || err2 != nil {
 			return nil, errors.New("Error creating data buffer.")
 		}
 	}
