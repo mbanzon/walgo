@@ -14,6 +14,8 @@ const (
 // CheckErrOutputJson checks the provided error. If it is nil the provided
 // v is encoded as JSON and written to the given response writer. If it is
 // not nil the status code 500 (Internal server error) is instead sent.
+//
+// CheckErr is used to check the error. If JSON encoding fails 500 is sent.
 func CheckErrOutputJson(err error, w http.ResponseWriter, v interface{}) {
 	CheckErr(w, err, func() {
 		w.Header().Add(ContentTypeHeader, JsonContentType)
