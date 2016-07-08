@@ -56,6 +56,10 @@ func CreateJsonPayload(v interface{}) (p Payload, err error) {
 	}
 }
 
+func PayloadFromRawData(d []byte) (p Payload) {
+	return &payloadImpl{data: d, contentType: "application/octet-stream"}
+}
+
 func PayloadFromMultipart(m *MultipartPayload) (p Payload, err error) {
 	buffer := &bytes.Buffer{}
 	writer := multipart.NewWriter(buffer)
