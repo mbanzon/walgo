@@ -11,16 +11,11 @@ import (
 )
 
 const (
-	FormUrlEncodedContentType = "application/x-www-form-urlencoded"
-	OctetStreamContentType    = "application/octet-stream"
+	formUrlEncodedContentType = "application/x-www-form-urlencoded"
+	octetStreamContentType    = "application/octet-stream"
 )
 
-type Payload interface {
-	getContentType() (t string)
-	getData() (d []byte)
-}
-
-type payloadImpl struct {
+type payload struct {
 	contentType string
 	data        []byte
 }
@@ -37,35 +32,35 @@ type FormFile struct {
 	Name string
 }
 
-func (p *payloadImpl) getContentType() (t string) {
+func (p *payload) getContentType() (t string) {
 	return p.contentType
 }
 
-func (p *payloadImpl) getData() (d []byte) {
+func (p *payload) getData() (d []byte) {
 	return p.data
 }
 
-func PayloadFromValues(v url.Values) (p Payload) {
-	return &payloadImpl{
-		contentType: FormUrlEncodedContentType,
+func payloadFromValues(v url.Values) (p *payload) {
+	return &payload{
+		contentType: formUrlEncodedContentType,
 		data:        []byte(v.Encode()),
 	}
 }
 
-func CreateJsonPayload(v interface{}) (p Payload, err error) {
+func createJsonPayload(v interface{}) (p *payload, err error) {
 	data, err := json.Marshal(v)
 	if err != nil {
 		return nil, err
 	} else {
-		return &payloadImpl{data: data}, nil
+		return &payload{data: data}, nil
 	}
 }
 
-func PayloadFromRawData(d []byte) (p Payload) {
-	return &payloadImpl{data: d, contentType: OctetStreamContentType}
+func payloadFromRawData(d []byte) (p *payload) {
+	return &payload{data: d, contentType: octetStreamContentType}
 }
 
-func PayloadFromMultipart(m *MultipartPayload) (p Payload, err error) {
+func payloadFromMultipart(m *MultipartPayload) (p *payload, err error) {
 	buffer := &bytes.Buffer{}
 	writer := multipart.NewWriter(buffer)
 	defer writer.Close()
@@ -92,7 +87,7 @@ func PayloadFromMultipart(m *MultipartPayload) (p Payload, err error) {
 	contentType := writer.FormDataContentType()
 	writer.Close()
 
-	return &payloadImpl{
+	return &payload{
 		contentType: contentType,
 		data:        buffer.Bytes(),
 	}, nil

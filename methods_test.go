@@ -115,7 +115,7 @@ func TestGetWithParameters(t *testing.T) {
 }
 
 func TestPost(t *testing.T) {
-	res, err := Post("http://httpbin.org/post", nil, nil)
+	res, err := Post("http://httpbin.org/post", nil)
 	if err != nil || res.Error() != nil {
 		t.Fatal(err)
 	}
@@ -130,7 +130,7 @@ func TestPost(t *testing.T) {
 }
 
 func TestPut(t *testing.T) {
-	res, err := Put("http://httpbin.org/put", nil, nil)
+	res, err := Put("http://httpbin.org/put", nil)
 	if err != nil || res.Error() != nil {
 		t.Fatal(err)
 	}

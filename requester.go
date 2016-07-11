@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"time"
 )
 
@@ -13,9 +14,9 @@ var (
 )
 
 const (
-	UserAgentHeader     = "User-Agent"
-	AuthorizationHeader = "Authorization"
-	BearerPrefix        = "Bearer "
+	userAgentHeader     = "User-Agent"
+	authorizationHeader = "Authorization"
+	bearerPrefix        = "Bearer "
 	DefaultClientName   = "walgo"
 )
 
@@ -25,13 +26,19 @@ func init() {
 
 type Requester interface {
 	Get(url string, p ParameterMap) (res Response, err error)
-	Post(url string, p ParameterMap, l Payload) (r Response, err error)
+	Post(url string, p ParameterMap) (r Response, err error)
 	PostJson(url string, p ParameterMap, v interface{}) (r Response, err error)
-	Put(url string, p ParameterMap, l Payload) (r Response, err error)
+	PostRaw(url string, p ParameterMap, data []byte) (r Response, err error)
+	PostMultipart(url string, p ParameterMap, m *MultipartPayload) (r Response, err error)
+	PostValues(url string, p ParameterMap, v url.Values) (r Response, err error)
+	Put(url string, p ParameterMap) (r Response, err error)
 	PutJson(url string, p ParameterMap, v interface{}) (r Response, err error)
+	PutRaw(url string, p ParameterMap, data []byte) (r Response, err error)
+	PutMultipart(url string, p ParameterMap, m *MultipartPayload) (r Response, err error)
+	PutValues(url string, p ParameterMap, v url.Values) (r Response, err error)
 	Delete(url string, p ParameterMap) (r Response, err error)
 
-	makeRequest(url string, p ParameterMap, method string, l Payload) (r Response, err error)
+	makeRequest(url string, p ParameterMap, method string, l *payload) (r Response, err error)
 }
 
 type requesterImpl struct {
@@ -48,7 +55,7 @@ func NewRequester(c *http.Client, userAgent, authToken string) (r Requester) {
 	}
 }
 
-func (f *requesterImpl) makeRequest(url string, p ParameterMap, method string, l Payload) (r Response, err error) {
+func (f *requesterImpl) makeRequest(url string, p ParameterMap, method string, l *payload) (r Response, err error) {
 	u, err := createParameterUrl(url, p)
 	if err != nil {
 		return nil, err
@@ -74,12 +81,12 @@ func (f *requesterImpl) makeRequest(url string, p ParameterMap, method string, l
 	}
 
 	if l != nil {
-		req.Header.Add(ContentTypeHeader, l.getContentType())
+		req.Header.Add(contentTypeHeader, l.getContentType())
 	}
 
-	req.Header.Add(UserAgentHeader, f.userAgent)
+	req.Header.Add(userAgentHeader, f.userAgent)
 	if "" != f.authToken {
-		req.Header.Add(AuthorizationHeader, BearerPrefix+f.authToken)
+		req.Header.Add(authorizationHeader, bearerPrefix+f.authToken)
 	}
 
 	resp, err := f.client.Do(req)

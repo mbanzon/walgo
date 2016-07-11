@@ -11,9 +11,8 @@ func TestValueMapData(t *testing.T) {
 	v.Add("key1", "value1")
 	v.Add("key2", "value2")
 
-	p := PayloadFromValues(v)
-
-	doMakeTheRequest(t, p)
+	res, err := PostValues("http://httpbin.org/post", nil, v)
+	testResponse(t, res, err)
 }
 
 func TestJsonData(t *testing.T) {
@@ -25,12 +24,8 @@ func TestJsonData(t *testing.T) {
 		"bar",
 	}
 
-	p, err := CreateJsonPayload(d)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	doMakeTheRequest(t, p)
+	res, err := PostJson("http://httpbin.org/post", nil, d)
+	testResponse(t, res, err)
 }
 
 func TestMultipartData(t *testing.T) {
@@ -38,16 +33,12 @@ func TestMultipartData(t *testing.T) {
 	m.Add("key1", "value1")
 	m.Add("key2", "value2")
 
-	p, err := PayloadFromMultipart(m)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	doMakeTheRequest(t, p)
+	res, err := PostMultipart("http://httpbin.org/post", nil, m)
+	testResponse(t, res, err)
 }
 
 func TestMultipartDublets(t *testing.T) {
-	m := MultipartPayload{}
+	m := &MultipartPayload{}
 	err := m.Add("name", "value")
 	if err != nil {
 		t.Fatal(err)
@@ -58,8 +49,7 @@ func TestMultipartDublets(t *testing.T) {
 	}
 }
 
-func doMakeTheRequest(t *testing.T, p Payload) {
-	res, err := Post("http://httpbin.org/post", nil, p)
+func testResponse(t *testing.T, res Response, err error) {
 	if err != nil || res.Error() != nil {
 		t.Fatal(err)
 	}

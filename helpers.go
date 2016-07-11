@@ -7,8 +7,8 @@ import (
 )
 
 const (
-	ContentTypeHeader = "Content-Type"     // Header for specifying content type
-	JsonContentType   = "application/json" // Content type for JSON payloads
+	contentTypeHeader = "Content-Type"     // Header for specifying content type
+	jsonContentType   = "application/json" // Content type for JSON payloads
 )
 
 // CheckErrOutputJson checks the provided error. If it is nil the provided
@@ -18,7 +18,7 @@ const (
 // CheckErr is used to check the error. If JSON encoding fails 500 is sent.
 func CheckErrOutputJson(err error, w http.ResponseWriter, v interface{}) {
 	CheckErr(w, err, func() {
-		w.Header().Add(ContentTypeHeader, JsonContentType)
+		w.Header().Add(contentTypeHeader, jsonContentType)
 		if e := json.NewEncoder(w).Encode(v); e != nil {
 			http.Error(w, "Internal server error.", http.StatusInternalServerError)
 		}
