@@ -13,6 +13,19 @@ func TestValueMapData(t *testing.T) {
 
 	res, err := PostValues("http://httpbin.org/post", nil, v)
 	testResponse(t, res, err)
+
+	res, err = PutValues("http://httpbin.org/put", nil, v)
+	testResponse(t, res, err)
+}
+
+func TestRawData(t *testing.T) {
+	data := []byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
+
+	res, err := PostRaw("http://httpbin.org/post", nil, data)
+	testResponse(t, res, err)
+
+	res, err = PutRaw("http://httpbin.org/put", nil, data)
+	testResponse(t, res, err)
 }
 
 func TestJsonData(t *testing.T) {
@@ -26,6 +39,9 @@ func TestJsonData(t *testing.T) {
 
 	res, err := PostJson("http://httpbin.org/post", nil, d)
 	testResponse(t, res, err)
+
+	res, err = PutJson("http://httpbin.org/put", nil, d)
+	testResponse(t, res, err)
 }
 
 func TestMultipartData(t *testing.T) {
@@ -34,6 +50,9 @@ func TestMultipartData(t *testing.T) {
 	m.Add("key2", "value2")
 
 	res, err := PostMultipart("http://httpbin.org/post", nil, m)
+	testResponse(t, res, err)
+
+	res, err = PutMultipart("http://httpbin.org/put", nil, m)
 	testResponse(t, res, err)
 }
 
