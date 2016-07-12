@@ -15,11 +15,15 @@ const (
 	octetStreamContentType    = "application/octet-stream"
 )
 
+// This is the generic payload structure holding a content type and some
+// binary data. All other payload types are transformed into this.
 type payload struct {
 	contentType string
 	data        []byte
 }
 
+// MultipartPayload holds data for values and files that can be used when
+// making requests with a multipart body.
 type MultipartPayload struct {
 	values map[string]string
 	files  map[string]FormFile
@@ -27,6 +31,8 @@ type MultipartPayload struct {
 	lock sync.Mutex
 }
 
+// FormFile is the representation of a file that should be added to a
+// MultipartPayload.
 type FormFile struct {
 	File io.ReadCloser
 	Name string
@@ -40,6 +46,7 @@ func (p *payload) getData() (d []byte) {
 	return p.data
 }
 
+// Creates a payload from form values.
 func payloadFromValues(v url.Values) (p *payload) {
 	return &payload{
 		contentType: formUrlEncodedContentType,
@@ -47,6 +54,7 @@ func payloadFromValues(v url.Values) (p *payload) {
 	}
 }
 
+// Creates a payload from an interface type by encoding it as JSON.
 func createJsonPayload(v interface{}) (p *payload, err error) {
 	data, err := json.Marshal(v)
 	if err != nil {
@@ -56,10 +64,12 @@ func createJsonPayload(v interface{}) (p *payload, err error) {
 	}
 }
 
+// Creates a payload from raw dara.
 func payloadFromRawData(d []byte) (p *payload) {
 	return &payload{data: d, contentType: octetStreamContentType}
 }
 
+// Creates a payload from MultipartPayload - encodes files and values.
 func payloadFromMultipart(m *MultipartPayload) (p *payload, err error) {
 	buffer := &bytes.Buffer{}
 	writer := multipart.NewWriter(buffer)
@@ -93,6 +103,7 @@ func payloadFromMultipart(m *MultipartPayload) (p *payload, err error) {
 	}, nil
 }
 
+// Checks if the MultipartPayload already has an element with name.
 func (p *MultipartPayload) hasName(name string) bool {
 	for k, _ := range p.values {
 		if k == name {
@@ -109,6 +120,7 @@ func (p *MultipartPayload) hasName(name string) bool {
 	return false
 }
 
+// Add adds a simple string value to the MultipartPayload.
 func (p *MultipartPayload) Add(name, value string) (err error) {
 	p.lock.Lock()
 	defer p.lock.Unlock()
@@ -125,6 +137,7 @@ func (p *MultipartPayload) Add(name, value string) (err error) {
 	return nil
 }
 
+// AddFile adds a FormFile to the MultipartPayload.
 func (p *MultipartPayload) AddFile(name string, f FormFile) (err error) {
 	p.lock.Lock()
 	defer p.lock.Unlock()
