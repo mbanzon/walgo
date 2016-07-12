@@ -94,11 +94,21 @@ func NewRequester(c *http.Client, userAgent, authToken string) (r Requester) {
 	}
 }
 
-func (f *requesterImpl) makeRequest(url string, p ParameterMap, method string, l *payload) (r Response, err error) {
-	u, err := createParameterUrl(url, p)
+func (f *requesterImpl) makeRequest(urlStr string, p ParameterMap, method string, l *payload) (r Response, err error) {
+	u, err := url.Parse(urlStr)
 	if err != nil {
 		return nil, err
 	}
+
+	query := u.Query()
+
+	if p != nil {
+		for k, v := range p {
+			query.Add(k, v)
+		}
+	}
+
+	u.RawQuery = query.Encode()
 
 	startTime := time.Now()
 	code := -1
@@ -149,22 +159,4 @@ func (f *requesterImpl) makeRequest(url string, p ParameterMap, method string, l
 	}
 
 	return r, err
-}
-
-func createParameterUrl(urlStr string, p ParameterMap) (u *url.URL, err error) {
-	u, err = url.Parse(urlStr)
-	if err != nil {
-		return nil, err
-	}
-
-	query := u.Query()
-
-	if p != nil {
-		for k, v := range p {
-			query.Add(k, v)
-		}
-	}
-
-	u.RawQuery = query.Encode()
-	return u, nil
 }
