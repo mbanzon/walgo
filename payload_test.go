@@ -1,6 +1,8 @@
 package walgo
 
 import (
+	"bytes"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"testing"
@@ -49,6 +51,14 @@ func TestMultipartData(t *testing.T) {
 	m.Add("key1", "value1")
 	m.Add("key2", "value2")
 
+	fileSynth := &bytes.Buffer{}
+	fileSynth.WriteString("test file for multipart data")
+
+	m.AddFile("test_file", FormFile{
+		File: ioutil.NopCloser(fileSynth),
+		Name: "yeah.txt",
+	})
+
 	res, err := PostMultipart("http://httpbin.org/post", nil, m)
 	testResponse(t, res, err)
 
@@ -66,6 +76,20 @@ func TestMultipartDublets(t *testing.T) {
 	if err == nil {
 		t.Fatal("Dublets should fail!")
 	}
+
+	fileSynth := &bytes.Buffer{}
+	fileSynth.WriteString("test file for multipart data")
+	formFile := FormFile{File: ioutil.NopCloser(fileSynth), Name: "test.txt"}
+
+	err = m.AddFile("test_file", formFile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = m.AddFile("test_file", formFile)
+	if err == nil {
+		t.Fatal("Dublets should fail!")
+	}
+
 }
 
 func testResponse(t *testing.T, res Response, err error) {
