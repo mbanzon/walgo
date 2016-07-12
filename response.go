@@ -6,11 +6,24 @@ import (
 )
 
 type Response interface {
+	// Data returns the raw bytes from the body of the response.
 	Data() (data []byte)
+
+	// String returns the content of the response body as a string.
 	String() (s string)
+
+	// Code returns the response code given by the server.
 	Code() (code int)
+
+	// Duraction returns the time it took to make the request and get the
+	// response.
 	Duration() (duration time.Duration)
+
+	// JSON returns the content of the response body decoded as JSON
+	// into the given interface.
 	JSON(v interface{}) (err error)
+
+	// Error gives the error that occured during the request - if any.
 	Error() (err error)
 }
 

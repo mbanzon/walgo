@@ -16,6 +16,10 @@ const (
 	skipValue    = "skip"
 )
 
+// VarifyBody reads the body from the HTTP request and tries to decode it as
+// JSON. It also checks for the presence of all the values in the given
+// interface type. If the parsed body matches the interface the next function
+// is called.
 func VerifyBody(w http.ResponseWriter, r *http.Request, v interface{}, next func()) {
 	data, err := ioutil.ReadAll(r.Body)
 	if err != nil {
