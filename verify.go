@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"reflect"
 	"strings"
@@ -23,14 +22,12 @@ const (
 func VerifyBody(w http.ResponseWriter, r *http.Request, v interface{}, next func()) {
 	data, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		log.Println(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	valid, err := verifyData(data, v)
 	if err != nil || !valid {
-		log.Println(err)
 		http.Error(w, "", http.StatusBadRequest)
 		return
 	}
