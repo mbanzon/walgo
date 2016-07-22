@@ -186,7 +186,7 @@ func (l *RateLimitRequester) allowed() (allowed bool) {
 		newCounts = l.requestCounts[i:]
 	}
 
-	if len(newCounts) > l.limit {
+	if len(newCounts) >= l.limit {
 		allowed = false
 	} else {
 		allowed = true
@@ -200,51 +200,99 @@ func (l *RateLimitRequester) allowed() (allowed bool) {
 }
 
 func (l *RateLimitRequester) Get(url string, p ParameterMap) (res Response, err error) {
-	return l.requester.Get(url, p)
+	if l.allowed() {
+		return l.requester.Get(url, p)
+	} else {
+		return nil, RateLimitExceededErr
+	}
 }
 
 func (l *RateLimitRequester) Post(url string, p ParameterMap) (r Response, err error) {
-	return l.requester.Post(url, p)
+	if l.allowed() {
+		return l.requester.Post(url, p)
+	} else {
+		return nil, RateLimitExceededErr
+	}
 }
 
 func (l *RateLimitRequester) PostJson(url string, p ParameterMap, v interface{}) (r Response, err error) {
-	return l.requester.PostJson(url, p, v)
+	if l.allowed() {
+		return l.requester.PostJson(url, p, v)
+	} else {
+		return nil, RateLimitExceededErr
+	}
 }
 
 func (l *RateLimitRequester) PostRaw(url string, p ParameterMap, data []byte) (r Response, err error) {
-	return l.requester.PostRaw(url, p, data)
+	if l.allowed() {
+		return l.requester.PostRaw(url, p, data)
+	} else {
+		return nil, RateLimitExceededErr
+	}
 }
 
 func (l *RateLimitRequester) PostMultipart(url string, p ParameterMap, m *MultipartPayload) (r Response, err error) {
-	return l.requester.PostMultipart(url, p, m)
+	if l.allowed() {
+		return l.requester.PostMultipart(url, p, m)
+	} else {
+		return nil, RateLimitExceededErr
+	}
 }
 
 func (l *RateLimitRequester) PostValues(url string, p ParameterMap, v url.Values) (r Response, err error) {
-	return l.requester.PostValues(url, p, v)
+	if l.allowed() {
+		return l.requester.PostValues(url, p, v)
+	} else {
+		return nil, RateLimitExceededErr
+	}
 }
 
 func (l *RateLimitRequester) Put(url string, p ParameterMap) (r Response, err error) {
-	return l.requester.Put(url, p)
+	if l.allowed() {
+		return l.requester.Put(url, p)
+	} else {
+		return nil, RateLimitExceededErr
+	}
 }
 
 func (l *RateLimitRequester) PutJson(url string, p ParameterMap, v interface{}) (r Response, err error) {
-	return l.requester.PutJson(url, p, v)
+	if l.allowed() {
+		return l.requester.PutJson(url, p, v)
+	} else {
+		return nil, RateLimitExceededErr
+	}
 }
 
 func (l *RateLimitRequester) PutRaw(url string, p ParameterMap, data []byte) (r Response, err error) {
-	return l.requester.PutRaw(url, p, data)
+	if l.allowed() {
+		return l.requester.PutRaw(url, p, data)
+	} else {
+		return nil, RateLimitExceededErr
+	}
 }
 
 func (l *RateLimitRequester) PutMultipart(url string, p ParameterMap, m *MultipartPayload) (r Response, err error) {
-	return l.requester.PutMultipart(url, p, m)
+	if l.allowed() {
+		return l.requester.PutMultipart(url, p, m)
+	} else {
+		return nil, RateLimitExceededErr
+	}
 }
 
 func (l *RateLimitRequester) PutValues(url string, p ParameterMap, v url.Values) (r Response, err error) {
-	return l.requester.PutValues(url, p, v)
+	if l.allowed() {
+		return l.requester.PutValues(url, p, v)
+	} else {
+		return nil, RateLimitExceededErr
+	}
 }
 
 func (l *RateLimitRequester) Delete(url string, p ParameterMap) (r Response, err error) {
-	return l.requester.Delete(url, p)
+	if l.allowed() {
+		return l.requester.Delete(url, p)
+	} else {
+		return nil, RateLimitExceededErr
+	}
 }
 
 func (l *RateLimitRequester) makeRequest(url string, p ParameterMap, method string, load *payload) (r Response, err error) {

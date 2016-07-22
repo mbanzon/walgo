@@ -3,6 +3,7 @@ package walgo
 import (
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"testing"
 	"time"
 )
@@ -246,5 +247,208 @@ func TestTokenRateLimit(t *testing.T) {
 
 	if h.hitCount > 10 {
 		t.Fatal("Hit count too high:", h.hitCount)
+	}
+}
+
+func TestLimitedGet(t *testing.T) {
+	requester := NewRateLimitRequester(defaultRequester, 1, time.Hour)
+
+	for i := 0; i < 2; i++ {
+		res, err := requester.Get("http://httpbin.org/get", nil)
+		if i < 1 {
+			if err != nil || res.Error() != nil {
+				t.Fatal(err)
+			}
+		} else {
+			if err != RateLimitExceededErr {
+				t.Fatal("Allowed to request beyond rate limit:", i, err)
+			}
+		}
+	}
+}
+
+func TestLimitedPost(t *testing.T) {
+	requester := NewRateLimitRequester(defaultRequester, 1, time.Hour)
+
+	for i := 0; i < 2; i++ {
+		res, err := requester.Post("http://httpbin.org/post", nil)
+		if i < 1 {
+			if err != nil || res.Error() != nil {
+				t.Fatal(err)
+			}
+		} else {
+			if err != RateLimitExceededErr {
+				t.Fatal("Allowed to request beyond rate limit:", i, err)
+			}
+		}
+	}
+}
+
+func TestLimitedPostRaw(t *testing.T) {
+	requester := NewRateLimitRequester(defaultRequester, 1, time.Hour)
+
+	for i := 0; i < 2; i++ {
+		res, err := requester.PostRaw("http://httpbin.org/post", nil, []byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9})
+		if i < 1 {
+			if err != nil || res.Error() != nil {
+				t.Fatal(err)
+			}
+		} else {
+			if err != RateLimitExceededErr {
+				t.Fatal("Allowed to request beyond rate limit:", i, err)
+			}
+		}
+	}
+}
+
+func TestLimitedPostMultipart(t *testing.T) {
+	requester := NewRateLimitRequester(defaultRequester, 1, time.Hour)
+
+	m := &MultipartPayload{}
+	m.Add("foo", "bar")
+
+	for i := 0; i < 2; i++ {
+		res, err := requester.PostMultipart("http://httpbin.org/post", nil, m)
+		if i < 1 {
+			if err != nil || res.Error() != nil {
+				t.Fatal(err)
+			}
+		} else {
+			if err != RateLimitExceededErr {
+				t.Fatal("Allowed to request beyond rate limit:", i, err)
+			}
+		}
+	}
+}
+
+func TestLimitedPostValues(t *testing.T) {
+	requester := NewRateLimitRequester(defaultRequester, 1, time.Hour)
+
+	v := url.Values{}
+	v.Add("foo", "bar")
+
+	for i := 0; i < 2; i++ {
+		res, err := requester.PostValues("http://httpbin.org/put", nil, v)
+		if i < 1 {
+			if err != nil || res.Error() != nil {
+				t.Fatal(err)
+			}
+		} else {
+			if err != RateLimitExceededErr {
+				t.Fatal("Allowed to request beyond rate limit:", i, err)
+			}
+		}
+	}
+}
+
+func TestLimitedPostJson(t *testing.T) {
+	requester := NewRateLimitRequester(defaultRequester, 1, time.Hour)
+
+	payload := struct{ string }{"foobar"}
+
+	for i := 0; i < 2; i++ {
+		res, err := requester.PostJson("http://httpbin.org/post", nil, &payload)
+		if i < 1 {
+			if err != nil || res.Error() != nil {
+				t.Fatal(err)
+			}
+		} else {
+			if err != RateLimitExceededErr {
+				t.Fatal("Allowed to request beyond rate limit:", i, err)
+			}
+		}
+	}
+}
+
+func TestLimitedPut(t *testing.T) {
+	requester := NewRateLimitRequester(defaultRequester, 1, time.Hour)
+
+	for i := 0; i < 2; i++ {
+		res, err := requester.Put("http://httpbin.org/put", nil)
+		if i < 1 {
+			if err != nil || res.Error() != nil {
+				t.Fatal(err)
+			}
+		} else {
+			if err != RateLimitExceededErr {
+				t.Fatal("Allowed to request beyond rate limit:", i, err)
+			}
+		}
+	}
+}
+
+func TestLimitedPutRaw(t *testing.T) {
+	requester := NewRateLimitRequester(defaultRequester, 1, time.Hour)
+
+	for i := 0; i < 2; i++ {
+		res, err := requester.PutRaw("http://httpbin.org/put", nil, []byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9})
+		if i < 1 {
+			if err != nil || res.Error() != nil {
+				t.Fatal(err)
+			}
+		} else {
+			if err != RateLimitExceededErr {
+				t.Fatal("Allowed to request beyond rate limit:", i, err)
+			}
+		}
+	}
+}
+
+func TestLimitedPutMultipart(t *testing.T) {
+	requester := NewRateLimitRequester(defaultRequester, 1, time.Hour)
+
+	m := &MultipartPayload{}
+	m.Add("foo", "bar")
+
+	for i := 0; i < 2; i++ {
+		res, err := requester.PutMultipart("http://httpbin.org/put", nil, m)
+		if i < 1 {
+			if err != nil || res.Error() != nil {
+				t.Fatal(err)
+			}
+		} else {
+			if err != RateLimitExceededErr {
+				t.Fatal("Allowed to request beyond rate limit:", i, err)
+			}
+		}
+	}
+}
+
+func TestLimitedPutValues(t *testing.T) {
+	requester := NewRateLimitRequester(defaultRequester, 1, time.Hour)
+
+	v := url.Values{}
+	v.Add("foo", "bar")
+
+	for i := 0; i < 2; i++ {
+		res, err := requester.PutValues("http://httpbin.org/put", nil, v)
+		if i < 1 {
+			if err != nil || res.Error() != nil {
+				t.Fatal(err)
+			}
+		} else {
+			if err != RateLimitExceededErr {
+				t.Fatal("Allowed to request beyond rate limit:", i, err)
+			}
+		}
+	}
+}
+
+func TestLimitedPutJson(t *testing.T) {
+	requester := NewRateLimitRequester(defaultRequester, 1, time.Hour)
+
+	payload := struct{ string }{"foobar"}
+
+	for i := 0; i < 2; i++ {
+		res, err := requester.PutJson("http://httpbin.org/put", nil, &payload)
+		if i < 1 {
+			if err != nil || res.Error() != nil {
+				t.Fatal(err)
+			}
+		} else {
+			if err != RateLimitExceededErr {
+				t.Fatal("Allowed to request beyond rate limit:", i, err)
+			}
+		}
 	}
 }
