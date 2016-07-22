@@ -104,7 +104,7 @@ func (r *RateLimitHandler) allowed(client string) (allowed bool) {
 
 		newCounts := counts[i:]
 
-		if len(newCounts) > r.maxRequests {
+		if len(newCounts) >= r.maxRequests {
 			allowed = false
 		} else {
 			allowed = true
