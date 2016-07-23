@@ -11,12 +11,28 @@ import (
 )
 
 var (
+	// NoAuthorizationHeaderErr is the error returned when the TokenRatePolicy
+	// can't resolve the client because there is no Authorization header value
+	// in the request.
 	NoAuthorizationHeaderErr = errors.New("No authorization header value.")
-	NoBearerPrefixErr        = errors.New("Authorization has no bearer prefix.")
-	NoHeaderValueErr         = errors.New("No header value.")
-	RateLimitExceededErr     = errors.New("Rate limit exceeded.")
+
+	// NoBearerPrefixErr is the error returned when the TokenRatePolicy
+	// can't resolve the client because there is no "Bearer " prefix in the
+	// Authorizastion header value in the request.
+	NoBearerPrefixErr = errors.New("Authorization has no bearer prefix.")
+
+	// NoHeaderValueErr is the error returned when the HeaderRatePolicy
+	// can't get a value for the supplied header.
+	NoHeaderValueErr = errors.New("No header value.")
+
+	// RateLimitExceeded is returned from the RateLimitRequester when making
+	// requests beyond the specified limit.
+	RateLimitExceededErr = errors.New("Rate limit exceeded.")
 )
 
+// RateLimitHandler keeps the information about rate limiting and provide
+// functions to handle requests or shield http.HandleFunc using the
+// limits provided.
 type RateLimitHandler struct {
 	maxRequests   int
 	duration      time.Duration
@@ -26,22 +42,38 @@ type RateLimitHandler struct {
 	policy        RatePolicy
 }
 
+// RatePolicy is the common interface for the different rate limiting policies.
 type RatePolicy interface {
+	// GetClient returns a string representing the client using the data in
+	// the given request by the rules of the implementing policy.
 	GetClient(*http.Request) (string, error)
 }
 
+// IPRatePolicy rate limits using the clients IP address as client
+// identification.
 type IPRatePolicy struct{}
 
+// TokenRatePolicy rate limits using the Bearer token set en the
+// request Authorization header as client identification.
 type TokenRatePolicy struct{}
 
+// HeaderRatePolicy rate limits using the value from the request
+// header with the provided name as client identification.
 type HeaderRatePolity struct {
+	// Name of the header holding the client identification string.
 	Name string
 }
 
+// CookieRatePolicy rate limits using the value of a cookie as the client
+// identification.
 type CookieRatePolicy struct {
+	// Name of the cookie holding the client identification string.
 	Name string
 }
 
+// Creates a new rate limiter that accepts maxRequest in the duration given.
+// The rate limiter uses the provided policy and redirects requests within the
+// limit to the given handler (when itself is used as http.Handler).
 func NewRateLimiter(maxRequests int, duration time.Duration, p RatePolicy, handler http.Handler) (r *RateLimitHandler) {
 	return &RateLimitHandler{
 		maxRequests:   maxRequests,
@@ -53,6 +85,8 @@ func NewRateLimiter(maxRequests int, duration time.Duration, p RatePolicy, handl
 	}
 }
 
+// GetClient implemenets getting the client id string from the header using
+// the HeaderRatePolicy.
 func (p HeaderRatePolity) GetClient(r *http.Request) (client string, err error) {
 	client = r.Header.Get(p.Name)
 	if client == "" {
@@ -62,6 +96,8 @@ func (p HeaderRatePolity) GetClient(r *http.Request) (client string, err error) 
 	return client, nil
 }
 
+// GetClient implemenets getting the client id string from the cookie
+// value using the CookieRatePolicy.
 func (p CookieRatePolicy) GetClient(r *http.Request) (client string, err error) {
 	cookie, err := r.Cookie(p.Name)
 	if err != nil {
@@ -71,11 +107,15 @@ func (p CookieRatePolicy) GetClient(r *http.Request) (client string, err error) 
 	return cookie.Value, nil
 }
 
+// GetClient implements getting the client id string from the request
+// remote IP address value.
 func (p IPRatePolicy) GetClient(r *http.Request) (client string, err error) {
 	client, _, err = net.SplitHostPort(r.RemoteAddr)
 	return client, err
 }
 
+// GetClient implements getting the client id string from the request
+// Authorization headers Bearer token.
 func (p TokenRatePolicy) GetClient(r *http.Request) (client string, err error) {
 	authorization := r.Header.Get(authorizationHeader)
 	if authorization == "" {
@@ -127,6 +167,9 @@ func (r *RateLimitHandler) allowed(client string) (allowed bool) {
 	return allowed
 }
 
+// ServeHTTP is implemented to satisfy the http.Handler interface. It checks
+// if the request should be allowed through using the policy and if that is
+// the case it forwards the call to the internal handler.
 func (r *RateLimitHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	if client, err := r.policy.GetClient(req); err == nil {
 		if r.allowed(client) {
@@ -138,6 +181,8 @@ func (r *RateLimitHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	http.Error(w, "Too many requests.", http.StatusTooManyRequests)
 }
 
+// LimitHandlerFunc takes a http.HandlerFunc and wraps it in a rate limited
+// version.
 func (r *RateLimitHandler) LimitHandlerFunc(hf http.HandlerFunc) (h http.HandlerFunc) {
 	return func(w http.ResponseWriter, req *http.Request) {
 		if client, err := r.policy.GetClient(req); err == nil {
@@ -151,6 +196,7 @@ func (r *RateLimitHandler) LimitHandlerFunc(hf http.HandlerFunc) (h http.Handler
 	}
 }
 
+// RateLimitRequester is used for managing and limiting outgoing requests.
 type RateLimitRequester struct {
 	requester     Requester
 	limit         int
@@ -159,6 +205,9 @@ type RateLimitRequester struct {
 	lock          *sync.Mutex
 }
 
+// Creates a new Requester that limits requets according to the given limit
+// and duration. Requets inside the limit is forwarded to the internal
+// requester.
 func NewRateLimitRequester(r Requester, limit int, duration time.Duration) (lr Requester) {
 	return &RateLimitRequester{
 		requester:     r,
@@ -199,6 +248,8 @@ func (l *RateLimitRequester) allowed() (allowed bool) {
 	return allowed
 }
 
+// Get forwards the request to the internal Requester if it is within the
+// rate limit.
 func (l *RateLimitRequester) Get(url string, p ParameterMap) (res Response, err error) {
 	if l.allowed() {
 		return l.requester.Get(url, p)
@@ -207,6 +258,8 @@ func (l *RateLimitRequester) Get(url string, p ParameterMap) (res Response, err 
 	}
 }
 
+// Post forwards the request to the internal Requester if it is within the
+// rate limit.
 func (l *RateLimitRequester) Post(url string, p ParameterMap) (r Response, err error) {
 	if l.allowed() {
 		return l.requester.Post(url, p)
@@ -215,6 +268,8 @@ func (l *RateLimitRequester) Post(url string, p ParameterMap) (r Response, err e
 	}
 }
 
+// PostJson forwards the request to the internal Requester if it is within the
+// rate limit.
 func (l *RateLimitRequester) PostJson(url string, p ParameterMap, v interface{}) (r Response, err error) {
 	if l.allowed() {
 		return l.requester.PostJson(url, p, v)
@@ -223,6 +278,8 @@ func (l *RateLimitRequester) PostJson(url string, p ParameterMap, v interface{})
 	}
 }
 
+// PostRaw forwards the request to the internal Requester if it is within the
+// rate limit.
 func (l *RateLimitRequester) PostRaw(url string, p ParameterMap, data []byte) (r Response, err error) {
 	if l.allowed() {
 		return l.requester.PostRaw(url, p, data)
@@ -231,6 +288,8 @@ func (l *RateLimitRequester) PostRaw(url string, p ParameterMap, data []byte) (r
 	}
 }
 
+// PostMultipart forwards the request to the internal Requester if it is
+// within the rate limit.
 func (l *RateLimitRequester) PostMultipart(url string, p ParameterMap, m *MultipartPayload) (r Response, err error) {
 	if l.allowed() {
 		return l.requester.PostMultipart(url, p, m)
@@ -239,6 +298,8 @@ func (l *RateLimitRequester) PostMultipart(url string, p ParameterMap, m *Multip
 	}
 }
 
+// PostValues forwards the request to the internal Requester if it is
+// within the rate limit.
 func (l *RateLimitRequester) PostValues(url string, p ParameterMap, v url.Values) (r Response, err error) {
 	if l.allowed() {
 		return l.requester.PostValues(url, p, v)
@@ -247,6 +308,8 @@ func (l *RateLimitRequester) PostValues(url string, p ParameterMap, v url.Values
 	}
 }
 
+// Put forwards the request to the internal Requester if it is
+// within the rate limit.
 func (l *RateLimitRequester) Put(url string, p ParameterMap) (r Response, err error) {
 	if l.allowed() {
 		return l.requester.Put(url, p)
@@ -255,6 +318,8 @@ func (l *RateLimitRequester) Put(url string, p ParameterMap) (r Response, err er
 	}
 }
 
+// PutJson forwards the request to the internal Requester if it is
+// within the rate limit.
 func (l *RateLimitRequester) PutJson(url string, p ParameterMap, v interface{}) (r Response, err error) {
 	if l.allowed() {
 		return l.requester.PutJson(url, p, v)
@@ -263,6 +328,8 @@ func (l *RateLimitRequester) PutJson(url string, p ParameterMap, v interface{}) 
 	}
 }
 
+// PutRaw forwards the request to the internal Requester if it is
+// within the rate limit.
 func (l *RateLimitRequester) PutRaw(url string, p ParameterMap, data []byte) (r Response, err error) {
 	if l.allowed() {
 		return l.requester.PutRaw(url, p, data)
@@ -271,6 +338,8 @@ func (l *RateLimitRequester) PutRaw(url string, p ParameterMap, data []byte) (r 
 	}
 }
 
+// PutMultipart forwards the request to the internal Requester if it is
+// within the rate limit.
 func (l *RateLimitRequester) PutMultipart(url string, p ParameterMap, m *MultipartPayload) (r Response, err error) {
 	if l.allowed() {
 		return l.requester.PutMultipart(url, p, m)
@@ -279,6 +348,8 @@ func (l *RateLimitRequester) PutMultipart(url string, p ParameterMap, m *Multipa
 	}
 }
 
+// PutValues forwards the request to the internal Requester if it is
+// within the rate limit.
 func (l *RateLimitRequester) PutValues(url string, p ParameterMap, v url.Values) (r Response, err error) {
 	if l.allowed() {
 		return l.requester.PutValues(url, p, v)
@@ -287,6 +358,8 @@ func (l *RateLimitRequester) PutValues(url string, p ParameterMap, v url.Values)
 	}
 }
 
+// Delete forwards the request to the internal Requester if it is
+// within the rate limit.
 func (l *RateLimitRequester) Delete(url string, p ParameterMap) (r Response, err error) {
 	if l.allowed() {
 		return l.requester.Delete(url, p)
